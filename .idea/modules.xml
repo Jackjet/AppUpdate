@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AppUpdate.iml" filepath="$PROJECT_DIR$/AppUpdate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apkupdate/apkupdate.iml" filepath="$PROJECT_DIR$/apkupdate/apkupdate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+    </modules>
+  </component>
+</project>
