@@ -23,11 +23,22 @@ allprojects {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-
+//依赖中有中文注释,防止乱码
 allprojects {
     tasks.withType(Javadoc) {
         options {
