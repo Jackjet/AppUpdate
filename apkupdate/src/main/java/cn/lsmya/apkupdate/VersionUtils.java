@@ -25,7 +25,6 @@ import cn.lsmya.apkupdate.ProgressManager.ProgressManager;
 import cn.lsmya.apkupdate.ProgressManager.body.ProgressInfo;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -43,11 +42,9 @@ public class VersionUtils {
         this.mVersionListener = versionListener;
 
         OkHttpClient okHttpClient = new OkHttpClient();
-        FormBody formBody = new FormBody.Builder().add("key", "").build();
         Request.Builder builder = new Request
                 .Builder()
-                .post(formBody)
-                .url("");
+                .url("http://www.youshengyun.com/baas/mobile/app/checkUpdate?bundleId=" + activityWeakReference.get().getApplicationInfo().processName);
         okHttpClient.newCall(builder.build())
                 .enqueue(new Callback() {
                     @Override
@@ -71,21 +68,33 @@ public class VersionUtils {
                                         try {
                                             JSONObject jsonObject = new JSONObject(responseData);
                                             int localCode = getVersionCode(activityWeakReference.get());
-                                            int versionCode = jsonObject.getInt("versionCode");
-                                            String versionName = jsonObject.getString("versionCode");
-                                            String apkUrl = jsonObject.getString("versionCode");
-                                            String versionInfo = jsonObject.getString("versionCode");
+                                            boolean success = jsonObject.getBoolean("success");
+                                            if (success) {
+                                                int versionCode = jsonObject.getInt("versionCode");
+                                                String versionName = jsonObject.getString("versionName");
+                                                String apkUrl = jsonObject.getString("url");
+                                                String versionInfo = jsonObject.getString("remark");
+                                                String md5 = jsonObject.getString("md5");
 
-                                            VersionBeen versionBeen = new VersionBeen();
-                                            versionBeen.setVersionCode(versionCode);
-                                            versionBeen.setVersionName(versionName);
-                                            versionBeen.setApkUrl(apkUrl);
-                                            versionBeen.setVersionInfo(versionInfo);
-
-                                            if (versionCode > localCode) {
-                                                mVersionListener.onUpdate(versionBeen, responseData);
+                                                VersionBeen versionBeen = new VersionBeen();
+                                                versionBeen.setVersionCode(versionCode);
+                                                versionBeen.setVersionName(versionName);
+                                                versionBeen.setOldVersionName(getVerName(activityWeakReference.get()));
+                                                versionBeen.setApkUrl(apkUrl);
+                                                versionBeen.setVersionInfo(versionInfo);
+                                                versionBeen.setMd5(md5);
+                                                if (versionCode > localCode) {
+                                                    mVersionListener.onUpdate(versionBeen, responseData);
+                                                } else {
+                                                    mVersionListener.onNotUpdate();
+                                                }
                                             } else {
-                                                mVersionListener.onNotUpdate();
+                                                mHandler.post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Toast.makeText(activityWeakReference.get(), "检查更新失败，请重试！", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
                                             }
                                         } catch (Exception e) {
                                             e.printStackTrace();
@@ -155,6 +164,17 @@ public class VersionUtils {
             e.printStackTrace();
         }
         return versionCode;
+    }
+
+    public static String getVerName(Context context) {
+        String verName = "";
+        try {
+            verName = context.getPackageManager().
+                    getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return verName;
     }
 
     private void download(OkHttpClient okHttpClient, String url, final String apkName, final OnDownloadListener listener) {
